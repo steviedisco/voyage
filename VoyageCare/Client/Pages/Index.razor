@@ -44,7 +44,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _homes = await Http.GetCareHomes();
+        _homes = await Http.GetCareHomesAsync();
     }
 
     private async void SaveCareHome()
@@ -57,13 +57,15 @@
 
         try
         {
-            await Http.SaveCareHome(careHome);
+            await Http.SaveCareHomeAsync(careHome);
         }
         catch (Exception ex)
         {
             _errorText = ex.Message;    
         }
 
-        _homes = await Http.GetCareHomes();
+        _homes = await Http.GetCareHomesAsync();
+
+        await InvokeAsync(StateHasChanged);
     }
 }

@@ -1,0 +1,37 @@
+﻿@page "/staff"
+@using VoyageCare.Shared
+@using Blazorise
+@using Blazorise.Components
+@inject VoyageCareClient Http
+
+<PageTitle>Staff</PageTitle>
+
+<h1>Staff</h1>
+
+@if (_homes == null)
+{
+    <p><em>Loading...</em></p>
+
+    return;
+}
+
+<DropdownList TItem="CareHome" TValue="string"
+              Data="@_homes"
+              TextField="@((item)=>item.Name)"
+              ValueField="@((item)=>item.CareHomeID.ToString())"
+              @bind-SelectedValue="@_selectedCareHome"
+              Color="Color.Primary"
+              MaxMenuHeight="200px">
+    @(@_homes?.FirstOrDefault(x => x.CareHomeID == Int32.Parse(@_selectedCareHome))?.Name ?? "Select Care Home")
+</DropdownList>
+
+@code{
+    private List<VoyageCare.Shared.CareHome>? _homes;
+    private string? _selectedCareHome { get; set; } = "-1";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _homes = await Http.GetCareHomesAsync();
+        await base.OnInitializedAsync();
+    }
+}

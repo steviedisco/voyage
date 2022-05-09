@@ -20,10 +20,10 @@ namespace VoyageCare.GUI
             this._serverHost = configuration.GetValue<string>("ApiUrls:VoyageCare.Server");
         }
 
-        public async Task<List<CareHome>?> GetCareHomes() =>
+        public async Task<List<CareHome>?> GetCareHomesAsync() =>
             await _httpClient.GetFromJsonAsync<List<CareHome>>($"{_serverHost}/CareHome");
 
-        public async Task<int> SaveCareHome(CareHome careHome)
+        public async Task<int> SaveCareHomeAsync(CareHome careHome)
         {
             var response = await _httpClient.PostAsJsonAsync($"{_serverHost}/CareHome", careHome);
             var content = await response.Content.ReadAsStringAsync();
