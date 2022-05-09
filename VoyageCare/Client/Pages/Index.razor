@@ -1,9 +1,69 @@
 ﻿@page "/"
+@using VoyageCare.Shared
+@using Blazorise
+@inject VoyageCareClient Http
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Care Homes</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Care Homes</h1>
 
-Welcome to your new app.
+@if (_homes == null)
+{
+    <p><em>Loading...</em></p>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+    return;
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var home in _homes)
+        {
+            <tr>
+                <td>@home.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<TextEdit  @bind-Text="@_careHomeName" class="float-left carehomename-text" Placeholder="New Care Home..." />
+
+<button class="btn btn-primary float-right" @onclick="SaveCareHome">Save</button>
+
+<Text class="float-left" TextColor="TextColor.Warning">@_errorText</Text>
+
+@code {
+    private List<VoyageCare.Shared.CareHome>? _homes;
+    private int _careHomeId = -1;
+    private string _careHomeName = string.Empty;
+    private string _errorText = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _homes = await Http.GetCareHomes();
+    }
+
+    private async void SaveCareHome()
+    {
+        var careHome = new CareHome
+            {
+                CareHomeID = _careHomeId, 
+                Name = _careHomeName
+            };
+
+        try
+        {
+            await Http.SaveCareHome(careHome);
+        }
+        catch (Exception ex)
+        {
+            _errorText = ex.Message;    
+        }
+
+        _homes = await Http.GetCareHomes();
+    }
+}

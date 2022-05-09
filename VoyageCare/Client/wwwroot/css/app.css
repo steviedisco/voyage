@@ -59,6 +59,20 @@ a, .btn-link {
     color: white;
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
+
+.float-left {
+    display: block;
+    float: left;
+}
+
+.float-right {
+    display: block;
+    float: right;
+}
+
+.carehomename-text {
+    width: calc(100% - 70px) !important
+}

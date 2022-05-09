@@ -14,7 +14,7 @@ namespace VoyageCare.GUI
             builder.RootComponents.Add<App>("#app");
 
             builder.Services
-                .AddBlazorise(options => {})
+                .AddBlazorise(options => { options.Immediate = true; })
                 .AddBootstrapProviders()
                 .AddFontAwesomeIcons();
 
