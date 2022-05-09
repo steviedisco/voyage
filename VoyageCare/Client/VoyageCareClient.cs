@@ -20,7 +20,7 @@ namespace VoyageCare.GUI
             this._serverHost = configuration.GetValue<string>("ApiUrls:VoyageCare.Server");
         }
 
-        public async Task<List<CareHome>?> GetCareHomesAsync() =>
+        public async Task<List<CareHome>?> GetAllCareHomesAsync() =>
             await _httpClient.GetFromJsonAsync<List<CareHome>>($"{_serverHost}/CareHome");
 
         public async Task<int> SaveCareHomeAsync(CareHome careHome)
@@ -34,6 +34,13 @@ namespace VoyageCare.GUI
             }
 
             throw new Exception(content);
+        }
+
+        public async Task<List<CareHomeStaff>?> GetAllCareHomeStaffAsync(int careHomeID)
+        {
+            var allStaff = await _httpClient.GetFromJsonAsync<List<CareHomeStaff>>($"{_serverHost}/Staff");
+
+            return allStaff?.Where(x => x.CareHomeID == careHomeID).OrderBy(x => $"{x.Surname}{x.Forename}" ).ToList();
         }
     }
 }
