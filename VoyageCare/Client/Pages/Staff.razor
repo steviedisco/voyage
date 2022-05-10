@@ -34,7 +34,7 @@
     return;
 }   
 
-<table class="table" style="width: 50%">
+<table class="table">
     <thead>
         <tr>
             <th>Name</th>
@@ -44,39 +44,61 @@
         @foreach (var staff in _staff)
         {
             <tr>
-                <td>@staff.Forename @staff.Surname</td>
+                <td>
+                    <Button Clicked="() => EditStaff(staff.CareHomeStaffID)">
+                        @staff.Forename @staff.Surname
+                    </Button>
+                </td>
             </tr>
         }
     </tbody>
-</table>
+</table>  
 
-@if (_staffID == null)
-{
-    return;
-}   
 
-<table class="table" style="width: 50%" hidden="@(_staffID <= 0)">
-    <thead>
-        <tr>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var staff in _staff)
-        {
-            <tr>
-                <td>@staff.Forename @staff.Surname</td>
-            </tr>
-        }
-    </tbody>
-</table>
+
+<Modal @bind-Visible="@_modalVisible">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Edit Staff</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Forename</FieldLabel>
+                <TextEdit Placeholder="Enter forename..." @bind-Text="@_careHomeStaff.Forename" />
+            </Field>
+            <Field>
+                <FieldLabel>Surname</FieldLabel>
+                <TextEdit Placeholder="Enter surname..." @bind-Text="@_careHomeStaff.Surname" />
+            </Field>
+            <Field>
+                <FieldLabel>Date of Birth</FieldLabel>
+                <DateEdit TValue="DateTime" @bind-Date="@_careHomeStaff.DOB" />
+            </Field>
+            <Field>
+                <FieldLabel>Job Title</FieldLabel>
+                <TextEdit Placeholder="Enter job title..." @bind-Text="@_careHomeStaff.JobTitle" />
+            </Field>
+            <Field>
+                <FieldLabel>Annual Salary</FieldLabel>
+                <NumericPicker TValue="int" CurrencySymbol="£" @bind-Value="_careHomeStaff.AnnualSalary" Decimals="0" Step="500" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+            <Button Color="Color.Primary" Clicked="@SaveStaff">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
 
 @code{
     private List<VoyageCare.Shared.CareHome>? _homes;
     private List<VoyageCare.Shared.CareHomeStaff>? _staff;
-    private int _selectedCareHomeID { get; set; } = -1;
-    private int _staffID { get; set; } = -1;
+    private int _selectedCareHomeID = -1;
+    private int _staffID = -1;
     private DropdownList<CareHome, int> ddlCareHome;
+    private CareHomeStaff _careHomeStaff = new CareHomeStaff();
+    private bool _modalVisible = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,19 +106,63 @@
         await base.OnInitializedAsync();
     }
 
+
     private async void NewStaff()
     {
         _staffID = 0;
 
+        _careHomeStaff = new CareHomeStaff
+        {
+            CareHomeID = _selectedCareHomeID
+        };
+
+        _modalVisible = true;
+
         await InvokeAsync(StateHasChanged);
     }
 
+
+    private async void EditStaff(int staffID)
+    {
+        _staffID = staffID;
+
+        _careHomeStaff = (await Http.GetCareHomeStaffAsync(staffID)) ?? new CareHomeStaff() ;
+
+        _modalVisible = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
     private async void CareHomeSelected()
     {
-        _selectedCareHomeID = ddlCareHome.SelectedValue;
+        _careHomeStaff.CareHomeID = _selectedCareHomeID = ddlCareHome.SelectedValue;
 
         _staff = await Http.GetAllCareHomeStaffAsync(_selectedCareHomeID);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+
+    private void HideModal()
+    {
+        _staffID = -1;
+        _modalVisible = false;
+    }
+
+
+    private async Task SaveStaff()
+    {
+        try
+        {
+            await Http.SaveCareHomeStaffAsync(_careHomeStaff);
+        }
+        catch (Exception ex)
+        {
+            // _errorText = ex.Message; TODO   
+        }
+
+        CareHomeSelected();
+        HideModal();
     }
 }

@@ -42,5 +42,23 @@ namespace VoyageCare.GUI
 
             return allStaff?.Where(x => x.CareHomeID == careHomeID).OrderBy(x => $"{x.Surname}{x.Forename}" ).ToList();
         }
+
+        public async Task<CareHomeStaff?> GetCareHomeStaffAsync(int careHomeStaffID)
+        {
+            return await _httpClient.GetFromJsonAsync<CareHomeStaff>($"{_serverHost}/Staff/{careHomeStaffID}");
+        }
+
+        public async Task<int> SaveCareHomeStaffAsync(CareHomeStaff careHomeStaff)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{_serverHost}/Staff", careHomeStaff);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Convert.ToInt32(content);
+            }
+
+            throw new Exception(content);
+        }
     }
 }
