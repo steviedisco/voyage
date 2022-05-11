@@ -1,0 +1,217 @@
+﻿@page "/quals"
+@using VoyageCare.Shared
+@using Blazorise
+@using Blazorise.Components
+@using Blazorise.Icons.FontAwesome
+@inject VoyageCareClient Http
+
+<PageTitle>Qualifications</PageTitle>
+
+<h1>Qualifications</h1>
+
+@if (_homes == null)
+{
+    <p><em>Loading...</em></p>
+
+    return;
+}
+
+<DropdownList @ref="ddlCareHome"
+              TItem="CareHome" TValue="int"
+              Data="@_homes"
+              TextField="@((item)=>item.Name)"
+              ValueField="@((item)=>item.CareHomeID)"
+              Color="Color.Primary"
+              MaxMenuHeight="200px"
+              SelectedValueChanged="CareHomeSelected"
+              class="float-left">
+    @(@_homes?.FirstOrDefault(x => x.CareHomeID == _selectedCareHomeID)?.Name ?? "Select Care Home")
+</DropdownList>
+
+@if (_staff == null)
+{
+    return;
+}   
+
+<DropdownList @ref="ddlCareHomeStaff"
+              TItem="CareHomeStaff" TValue="int"
+              Data="@_staff"
+              TextField="@((item)=>$"{item.Forename} {item.Surname}" )"
+              ValueField="@((item)=>item.CareHomeStaffID)"
+              Color="Color.Primary"
+              MaxMenuHeight="200px"
+              SelectedValueChanged="StaffSelected"
+              class="float-left"
+              Style="margin-left: 21px;">
+    @(@_selectedCareHomeStaffName ?? "Select Staff")
+</DropdownList>
+
+@if (_selectedCareHomeStaffID < 0) {
+    return;
+}
+
+<button type="button" class="btn btn-primary float-right" @onclick="NewQual" hidden="@(_selectedCareHomeStaffID <= 0)" >New Qualification</button>
+
+
+@if (_quals == null)
+{
+    return;
+}  
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var qual in _quals)
+        {
+            <tr>
+                <td style="width: 1px; padding-top: 10px;">
+                    <Button Clicked="() => DeleteQual(qual.CareQualificationID)">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Trash" />
+                    </Button></td>
+                <td>
+                    <Button Clicked="() => EditQual(qual.CareQualificationID)">
+                        @qual.Type
+                    </Button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>  
+
+
+
+<Modal @bind-Visible="@_modalVisible">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Edit Qualification</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            <Field>
+                <FieldLabel>Type</FieldLabel>
+                <TextEdit Placeholder="Enter type..." @bind-Text="@_careQual.Type" />
+            </Field>
+            <Field>
+                <FieldLabel>Grade</FieldLabel>
+                <TextEdit Placeholder="Enter grade..." @bind-Text="@_careQual.Grade" />
+            </Field>
+            <Field>
+                <FieldLabel>Attainment Date</FieldLabel>
+                <DateEdit TValue="DateTime" @bind-Date="@_careQual.AttainmentDate" />
+            </Field>
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Secondary" Clicked="@HideModal">Close</Button>
+            <Button Color="Color.Primary" Clicked="@SaveQual">Save Changes</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+
+@code{
+    private List<VoyageCare.Shared.CareHome>? _homes;
+    private List<VoyageCare.Shared.CareHomeStaff>? _staff;
+    private List<VoyageCare.Shared.CareQualification>? _quals;
+
+    private int _selectedCareHomeID = -1;
+    private int _selectedCareHomeStaffID = -1;
+    private string? _selectedCareHomeStaffName = null;
+    private int _qualID = -1;
+
+    private DropdownList<CareHome, int> ddlCareHome;
+    private DropdownList<CareHomeStaff, int> ddlCareHomeStaff;
+
+    private CareQualification _careQual= new CareQualification();
+    private bool _modalVisible = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _homes = await Http.GetAllCareHomesAsync();
+        await base.OnInitializedAsync();
+    }
+
+
+    private async void CareHomeSelected()
+    {
+        _selectedCareHomeID = ddlCareHome.SelectedValue;
+
+        _staff = await Http.GetAllCareHomeStaffAsync(_selectedCareHomeID);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async void StaffSelected()
+    {
+        _careQual.CareHomeStaffID = _selectedCareHomeStaffID = ddlCareHomeStaff.SelectedValue;
+
+        var staff = _staff?.FirstOrDefault(x => x.CareHomeStaffID == _selectedCareHomeStaffID);
+        _selectedCareHomeStaffName = $"{staff.Forename} {staff.Surname}"; 
+
+        _quals = await Http.GetAllCareQualsAsync(_selectedCareHomeStaffID);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void NewQual()
+    {
+        _qualID = 0;
+
+        _careQual = new CareQualification
+        {
+            CareHomeStaffID = _selectedCareHomeStaffID
+        };
+
+        _modalVisible = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async void EditQual(int qualID)
+    {
+        _qualID = qualID;
+
+        _careQual = (await Http.GetCareQualAsync(qualID)) ?? new CareQualification() ;
+
+        _modalVisible = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async void DeleteQual(int qualID)
+    {
+        await Http.DeleteCareQualAsync(qualID);
+
+        _quals = await Http.GetAllCareQualsAsync(_selectedCareHomeStaffID);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void HideModal()
+    {
+        _qualID = -1;
+        _modalVisible = false;
+    }
+
+
+    private async Task SaveQual()
+    {
+        try
+        {
+            await Http.SaveCareQualAsync(_careQual);
+        }
+        catch (Exception ex)
+        {
+            // _errorText = ex.Message; TODO   
+        }
+
+        StaffSelected();
+        HideModal();
+    }
+}

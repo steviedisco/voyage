@@ -2,6 +2,7 @@
 @using VoyageCare.Shared
 @using Blazorise
 @using Blazorise.Components
+@using Blazorise.Icons.FontAwesome
 @inject VoyageCareClient Http
 
 <PageTitle>Staff</PageTitle>
@@ -44,6 +45,10 @@
         @foreach (var staff in _staff)
         {
             <tr>
+                <td style="width: 1px; padding-top: 10px;">
+                    <Button Clicked="() => DeleteStaff(staff.CareHomeStaffID)">
+                        <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Trash" />
+                    </Button></td>
                 <td>
                     <Button Clicked="() => EditStaff(staff.CareHomeStaffID)">
                         @staff.Forename @staff.Surname
@@ -129,6 +134,16 @@
         _careHomeStaff = (await Http.GetCareHomeStaffAsync(staffID)) ?? new CareHomeStaff() ;
 
         _modalVisible = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async void DeleteStaff(int staffID)
+    {
+        await Http.DeleteCareHomeStaffAsync(staffID);
+
+        _staff = await Http.GetAllCareHomeStaffAsync(_selectedCareHomeID);
 
         await InvokeAsync(StateHasChanged);
     }

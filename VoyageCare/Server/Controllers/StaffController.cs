@@ -32,5 +32,13 @@ namespace VoyageCare.Server.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpDelete("{staffID}")]
+        public async Task<bool> Delete(int staffID)
+        {
+            var staff = await DataClient.Get<CareHomeStaff>(staffID);
+
+            return await DataClient.DeleteAsync(staff);
+        }
     }
 }

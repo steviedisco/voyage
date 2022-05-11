@@ -60,5 +60,40 @@ namespace VoyageCare.GUI
 
             throw new Exception(content);
         }
+
+        public async Task DeleteCareHomeStaffAsync(int careHomeStaffID)
+        {
+            await _httpClient.DeleteAsync($"{_serverHost}/Staff/{careHomeStaffID}");
+        }
+
+        public async Task<List<CareQualification>?> GetAllCareQualsAsync(int careHomeStaffID)
+        {
+            var allQuals = await _httpClient.GetFromJsonAsync<List<CareQualification>>($"{_serverHost}/Qualification");
+
+            return allQuals?.Where(x => x.CareHomeStaffID == careHomeStaffID).OrderBy(x => x.Type).ToList();
+        }
+
+        public async Task<CareQualification?> GetCareQualAsync(int careQualID)
+        {
+            return await _httpClient.GetFromJsonAsync<CareQualification>($"{_serverHost}/Qualification/{careQualID}");
+        }
+
+        public async Task<int> SaveCareQualAsync(CareQualification careQual)
+        {
+            var response = await _httpClient.PostAsJsonAsync($"{_serverHost}/Qualification", careQual);
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Convert.ToInt32(content);
+            }
+
+            throw new Exception(content);
+        }
+
+        public async Task DeleteCareQualAsync(int careQualID)
+        {
+            await _httpClient.DeleteAsync($"{_serverHost}/Qualification/{careQualID}");
+        }
     }
 }

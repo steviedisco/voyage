@@ -1,4 +1,6 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Blazorise.Icons.FontAwesome
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Voyage Care</a>
         <button title="Navigation menu" class="navbar-toggler">
@@ -11,12 +13,17 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Care Homes
+                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.HouseUser" IconSize="Blazorise.IconSize.Large" />&nbsp;&nbsp;Homes
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="staff" Match="NavLinkMatch.All">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Staff
+                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.User" IconSize="Blazorise.IconSize.Large" />&nbsp;&nbsp;Staff
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="quals" Match="NavLinkMatch.All">
+                <Blazorise.Icons.FontAwesome.Icon Name="FontAwesomeIcons.Certificate" IconSize="Blazorise.IconSize.Large" />&nbsp;&nbsp;Qualifications
             </NavLink>
         </div>
     </nav>
